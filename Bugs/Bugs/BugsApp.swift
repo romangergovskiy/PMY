@@ -1,10 +1,10 @@
 import SwiftUI
 
 @main
-struct HelloWorldApp: App {
+struct BugsApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RegistrationView()
         }
     }
 }
