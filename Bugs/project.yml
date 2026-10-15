@@ -14,6 +14,11 @@ targets:
     platform: iOS
     sources:
       - path: Bugs
+        excludes:
+          - "Resources/**"
+      - path: Bugs/Resources
+        type: group
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.romangergovskiy.Bugs

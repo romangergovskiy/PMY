@@ -13,7 +13,6 @@ struct RegistrationView: View {
     @State private var showsNameError = false
 
     private let courses = Array(1...6)
-    private let locale = Locale(identifier: "ru_RU")
 
     private var dateRange: ClosedRange<Date> {
         let minDate = Calendar.current.date(from: DateComponents(year: 1960, month: 1, day: 1)) ?? Date.distantPast
@@ -56,33 +55,16 @@ struct RegistrationView: View {
             .background(Palette.background.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
         }
-        .tint(Palette.accent)
-        .environment(\.locale, locale)
     }
 
     // MARK: - Subviews
 
     private var header: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "ant.fill")
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(Palette.gold)
-                .frame(width: 56, height: 56)
-                .background(Palette.accent, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Жуки")
-                    .font(.title.bold())
-                    .foregroundStyle(Palette.ink)
-                Text("Регистрация игрока")
-                    .font(.subheadline)
-                    .foregroundStyle(Palette.muted)
-            }
-
-            Spacer()
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 4)
+        ScreenHeader(
+            systemImage: "ant.fill",
+            title: "Жуки",
+            subtitle: "Регистрация игрока"
+        )
     }
 
     private var nameCard: some View {
@@ -151,6 +133,7 @@ struct RegistrationView: View {
             VStack(spacing: 10) {
                 Slider(value: $difficulty, in: 1...10, step: 1)
                     .tint(Palette.accent)
+                    .accessibilityIdentifier("pager-lock-slider")
 
                 HStack {
                     Text("Лёгкий")
@@ -275,27 +258,6 @@ private struct RadioButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Card
-
-private struct FormCard<Content: View>: View {
-    let title: String
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title.uppercased())
-                .font(.caption.weight(.semibold))
-                .tracking(0.8)
-                .foregroundStyle(Palette.muted)
-            content
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: .black.opacity(0.06), radius: 10, y: 3)
     }
 }
 
