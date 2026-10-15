@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum AppTab: Int, CaseIterable, Hashable {
+    case game
     case registration
     case rules
     case authors
@@ -8,8 +9,10 @@ enum AppTab: Int, CaseIterable, Hashable {
 
     var title: String {
         switch self {
+        case .game:
+            return "Игра"
         case .registration:
-            return "Регистрация"
+            return "Игрок"
         case .rules:
             return "Правила"
         case .authors:
@@ -21,6 +24,8 @@ enum AppTab: Int, CaseIterable, Hashable {
 
     var systemImage: String {
         switch self {
+        case .game:
+            return "gamecontroller.fill"
         case .registration:
             return "person.crop.circle.fill"
         case .rules:
@@ -37,7 +42,7 @@ struct RootTabView: View {
 
     // MARK: - Properties
 
-    @State private var selectedTab: AppTab = .registration
+    @State private var selectedTab: AppTab = .game
 
     // MARK: - Body
 
@@ -65,6 +70,12 @@ struct RootTabView: View {
     @ViewBuilder
     private func page(for tab: AppTab) -> some View {
         switch tab {
+        case .game:
+            GameView { tab in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedTab = tab
+                }
+            }
         case .registration:
             RegistrationView()
         case .rules:

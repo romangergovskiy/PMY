@@ -32,6 +32,7 @@ final class GameSession {
         roundDuration: 30
     )
     private var lastUpdate = Date()
+    private var endDate = Date()
     private var spawnElapsed: TimeInterval = 0
     private var rareSpawnElapsed: TimeInterval = 0
 
@@ -57,6 +58,7 @@ final class GameSession {
         spawnElapsed = 0
         rareSpawnElapsed = 0
         lastUpdate = Date()
+        endDate = lastUpdate.addingTimeInterval(configuration.roundDuration)
         bugs = [
             makeBug(type: .common),
             makeBug(type: .fast),
@@ -83,7 +85,7 @@ final class GameSession {
 
         let elapsed = min(max(date.timeIntervalSince(lastUpdate), 0), 0.1)
         lastUpdate = date
-        timeRemaining = max(0, timeRemaining - elapsed)
+        timeRemaining = max(0, endDate.timeIntervalSince(date))
 
         guard timeRemaining > 0 else {
             finish()

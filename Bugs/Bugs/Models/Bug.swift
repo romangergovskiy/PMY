@@ -1,6 +1,5 @@
 import CoreGraphics
 import Foundation
-import SwiftUI
 
 enum BugType: String, CaseIterable {
     case common
@@ -51,25 +50,14 @@ enum BugType: String, CaseIterable {
         }
     }
 
-    var visualResource: String {
+    var assetName: String {
         switch self {
         case .common:
-            return "ladybug.fill"
+            return "bug-common"
         case .fast:
-            return "ant.fill"
+            return "bug-fast"
         case .rare:
-            return "beetle.fill"
-        }
-    }
-
-    var color: Color {
-        switch self {
-        case .common:
-            return .red
-        case .fast:
-            return .orange
-        case .rare:
-            return Palette.gold
+            return "bug-rare"
         }
     }
 }
@@ -83,7 +71,7 @@ struct Bug: Identifiable, Equatable {
     var speed: CGFloat { type.speed }
     var size: CGFloat { type.size }
     var points: Int { type.points }
-    var visualResource: String { type.visualResource }
+    var assetName: String { type.assetName }
 
     init(
         id: UUID = UUID(),

@@ -16,15 +16,18 @@
 		5A710B826F19E9AC2637C3C4 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A1E894D04E3D0300B0DABE /* Theme.swift */; };
 		5B75887785F41D25A72F978F /* Rules.html in Resources */ = {isa = PBXBuildFile; fileRef = 7DADF832E146511D99DB6BEA /* Rules.html */; };
 		5F5D1FBF2A078564A5049712 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D84743BA5B51AED9B02C33 /* SettingsView.swift */; };
+		68F3AFC9860B4C424D6D80DF /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ACBABB795BEBADADFA0BB64 /* GameSession.swift */; };
 		7420558C66124606308BC51D /* ScreenHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8133CE3A43016A413F41126 /* ScreenHeader.swift */; };
 		7EA8ED06BB4FFC05FF25F32D /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D53E3BDE07011A196729465E /* RootTabView.swift */; };
 		92ECBB10D65D608D30E20BB7 /* ZodiacSign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495283A78B35590FC12889E6 /* ZodiacSign.swift */; };
+		95419F2211BE15AD88F79A4C /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F88C47499D977AD8B4315027 /* GameView.swift */; };
 		99220824075DBEC72F6F7874 /* GameSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72DF4E4F7C18BA48A74AA8B4 /* GameSettings.swift */; };
 		A41F7F7C5EA03DBCA21BB13A /* BugsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F9BABA105EDE6838BF035F1 /* BugsApp.swift */; };
 		CEA05DE24388F3549A3D7798 /* FormCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A133D4114E4724339067470 /* FormCard.swift */; };
 		DAEDB880C579FDDA8AB0EC7B /* RulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74536B4D6E5C3438E2967670 /* RulesView.swift */; };
 		DF601ADAB9F4F8F396E88514 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 008DB1FD3E9CAE9EABB43783 /* Preview Assets.xcassets */; };
 		E420BFEE7CE841643B7B6FAD /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA94E2A9ADFF2AF7E619CC1 /* RegistrationView.swift */; };
+		F9089E908DD803D5CD79DA5A /* Bug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 818860D78EFA7EBC17B2C43E /* Bug.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,11 +37,13 @@
 		31AD5636639906E14185608B /* Author.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Author.swift; sourceTree = "<group>"; };
 		4261B649481BCA341880E1D0 /* AuthorsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorsView.swift; sourceTree = "<group>"; };
 		495283A78B35590FC12889E6 /* ZodiacSign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZodiacSign.swift; sourceTree = "<group>"; };
+		4ACBABB795BEBADADFA0BB64 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
 		56A1E894D04E3D0300B0DABE /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		72DF4E4F7C18BA48A74AA8B4 /* GameSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSettings.swift; sourceTree = "<group>"; };
 		74536B4D6E5C3438E2967670 /* RulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesView.swift; sourceTree = "<group>"; };
 		7A133D4114E4724339067470 /* FormCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormCard.swift; sourceTree = "<group>"; };
 		7DADF832E146511D99DB6BEA /* Rules.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Rules.html; sourceTree = "<group>"; };
+		818860D78EFA7EBC17B2C43E /* Bug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bug.swift; sourceTree = "<group>"; };
 		8C4F4D804F0DFF4C27FD5ECF /* Gender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gender.swift; sourceTree = "<group>"; };
 		8F9BABA105EDE6838BF035F1 /* BugsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugsApp.swift; sourceTree = "<group>"; };
 		92F51370B91337176C9FEBA5 /* HTMLView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLView.swift; sourceTree = "<group>"; };
@@ -47,6 +52,7 @@
 		C7A1BB426F3BC612D512AA9F /* Bugs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bugs.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D53E3BDE07011A196729465E /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		DCA94E2A9ADFF2AF7E619CC1 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
+		F88C47499D977AD8B4315027 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -62,6 +68,8 @@
 			isa = PBXGroup;
 			children = (
 				31AD5636639906E14185608B /* Author.swift */,
+				818860D78EFA7EBC17B2C43E /* Bug.swift */,
+				4ACBABB795BEBADADFA0BB64 /* GameSession.swift */,
 				72DF4E4F7C18BA48A74AA8B4 /* GameSettings.swift */,
 				8C4F4D804F0DFF4C27FD5ECF /* Gender.swift */,
 				11454FA6A6EC6EEF7351ACA6 /* Player.swift */,
@@ -83,6 +91,7 @@
 			children = (
 				4261B649481BCA341880E1D0 /* AuthorsView.swift */,
 				7A133D4114E4724339067470 /* FormCard.swift */,
+				F88C47499D977AD8B4315027 /* GameView.swift */,
 				92F51370B91337176C9FEBA5 /* HTMLView.swift */,
 				DCA94E2A9ADFF2AF7E619CC1 /* RegistrationView.swift */,
 				D53E3BDE07011A196729465E /* RootTabView.swift */,
@@ -197,9 +206,12 @@
 			files = (
 				0D4135B431C1E6CAB0DD3648 /* Author.swift in Sources */,
 				05D17A995F377D9A02D52C36 /* AuthorsView.swift in Sources */,
+				F9089E908DD803D5CD79DA5A /* Bug.swift in Sources */,
 				A41F7F7C5EA03DBCA21BB13A /* BugsApp.swift in Sources */,
 				CEA05DE24388F3549A3D7798 /* FormCard.swift in Sources */,
+				68F3AFC9860B4C424D6D80DF /* GameSession.swift in Sources */,
 				99220824075DBEC72F6F7874 /* GameSettings.swift in Sources */,
+				95419F2211BE15AD88F79A4C /* GameView.swift in Sources */,
 				213268CCDD07531C391F0C05 /* Gender.swift in Sources */,
 				401CCC6A26F1AC9C9C6D63F8 /* HTMLView.swift in Sources */,
 				027E4A7877806FBD4EFE156F /* Player.swift in Sources */,
