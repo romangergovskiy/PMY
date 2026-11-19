@@ -42,7 +42,7 @@ struct SettingsView: View {
                         )
                     }
 
-                    FormCard(title: "Интервал появления бонусов") {
+                    FormCard(title: "Интервал появления редких жуков") {
                         SettingsSlider(
                             value: $settings.bonusInterval,
                             range: 1...15,

@@ -5,6 +5,7 @@ enum BugType: String, CaseIterable {
     case common
     case fast
     case rare
+    case golden
 
     var title: String {
         switch self {
@@ -14,6 +15,8 @@ enum BugType: String, CaseIterable {
             return "Быстрый"
         case .rare:
             return "Редкий"
+        case .golden:
+            return "Золотой"
         }
     }
 
@@ -25,6 +28,8 @@ enum BugType: String, CaseIterable {
             return 0.25
         case .rare:
             return 0.18
+        case .golden:
+            return 0.16
         }
     }
 
@@ -36,6 +41,8 @@ enum BugType: String, CaseIterable {
             return 0.11
         case .rare:
             return 0.18
+        case .golden:
+            return 0.17
         }
     }
 
@@ -47,6 +54,8 @@ enum BugType: String, CaseIterable {
             return 10
         case .rare:
             return 25
+        case .golden:
+            return 100
         }
     }
 
@@ -58,6 +67,8 @@ enum BugType: String, CaseIterable {
             return "bug-fast"
         case .rare:
             return "bug-rare"
+        case .golden:
+            return "bug-gold"
         }
     }
 }
@@ -67,21 +78,40 @@ struct Bug: Identifiable, Equatable {
     var position: CGPoint
     var velocity: CGVector
     let type: BugType
+    let awardedPoints: Int
 
     var speed: CGFloat { type.speed }
     var size: CGFloat { type.size }
-    var points: Int { type.points }
+    var points: Int { awardedPoints }
     var assetName: String { type.assetName }
 
     init(
         id: UUID = UUID(),
         position: CGPoint,
         velocity: CGVector,
-        type: BugType
+        type: BugType,
+        awardedPoints: Int? = nil
     ) {
         self.id = id
         self.position = position
         self.velocity = velocity
         self.type = type
+        self.awardedPoints = awardedPoints ?? type.points
+    }
+}
+
+struct TiltBonus: Identifiable, Equatable {
+    let id: UUID
+    var position: CGPoint
+    let size: CGFloat
+
+    init(
+        id: UUID = UUID(),
+        position: CGPoint,
+        size: CGFloat = 0.16
+    ) {
+        self.id = id
+        self.position = position
+        self.size = size
     }
 }
