@@ -1,8 +1,13 @@
 import SwiftUI
+import SwiftData
 
 struct RegistrationView: View {
 
     // MARK: - Properties
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
+    @Query(sort: \PlayerProfile.fullName) private var profiles: [PlayerProfile]
 
     @State private var fullName = ""
     @State private var gender: Gender = .male
@@ -11,6 +16,8 @@ struct RegistrationView: View {
     @State private var birthDate = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     @State private var player: Player?
     @State private var showsNameError = false
+    @State private var databaseError: String?
+    @State private var playerToDelete: PlayerProfile?
 
     private let courses = Array(1...6)
 
@@ -27,6 +34,7 @@ struct RegistrationView: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         header
+                        savedPlayersCard
                         nameCard
                         genderCard
                         courseCard
@@ -54,6 +62,31 @@ struct RegistrationView: View {
             .scrollDismissesKeyboard(.interactively)
             .background(Palette.background.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                appState.restoreSelection(from: profiles)
+                if let selected = appState.selectedPlayer, player == nil {
+                    select(selected)
+                }
+            }
+            .confirmationDialog(
+                "Удалить игрока?",
+                isPresented: Binding(
+                    get: { playerToDelete != nil },
+                    set: { if !$0 { playerToDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Удалить", role: .destructive) {
+                    if let playerToDelete {
+                        delete(playerToDelete)
+                    }
+                }
+                Button("Отмена", role: .cancel) {
+                    playerToDelete = nil
+                }
+            } message: {
+                Text("Рекорды этого игрока тоже будут удалены.")
+            }
         }
     }
 
@@ -65,6 +98,64 @@ struct RegistrationView: View {
             title: "Жуки",
             subtitle: "Регистрация игрока"
         )
+    }
+
+    private var savedPlayersCard: some View {
+        FormCard(title: "Сохранённые игроки") {
+            if profiles.isEmpty {
+                Text("Зарегистрируйте первого игрока")
+                    .foregroundStyle(Palette.muted)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(profiles.enumerated()), id: \.element.id) { index, profile in
+                        if index > 0 {
+                            Divider()
+                        }
+                        playerRow(profile)
+                    }
+                }
+            }
+        }
+    }
+
+    private func playerRow(_ profile: PlayerProfile) -> some View {
+        HStack(spacing: 12) {
+            Button {
+                select(profile)
+            } label: {
+                HStack(spacing: 10) {
+                    Image(
+                        systemName: appState.selectedPlayer?.id == profile.id
+                            ? "checkmark.circle.fill"
+                            : "person.crop.circle"
+                    )
+                    .foregroundStyle(Palette.accent)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(profile.fullName)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Palette.ink)
+                            .multilineTextAlignment(.leading)
+                        Text("Сложность \(profile.difficulty)")
+                            .font(.caption)
+                            .foregroundStyle(Palette.muted)
+                    }
+
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                playerToDelete = profile
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundStyle(.red)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Удалить \(profile.fullName)")
+        }
+        .padding(.vertical, 10)
     }
 
     private var nameCard: some View {
@@ -82,6 +173,12 @@ struct RegistrationView: View {
 
             if showsNameError {
                 Text("Введите фамилию, имя и отчество")
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+
+            if let databaseError {
+                Text(databaseError)
                     .font(.footnote)
                     .foregroundStyle(.red)
             }
@@ -218,17 +315,91 @@ struct RegistrationView: View {
             return
         }
 
-        withAnimation(.easeInOut(duration: 0.25)) {
-            showsNameError = false
-            player = Player(
-                fullName: name,
-                gender: gender,
-                course: course,
-                difficulty: Int(difficulty),
-                birthDate: birthDate,
-                zodiacSign: ZodiacSign.from(birthDate: birthDate)
-            )
+        let zodiacSign = ZodiacSign.from(birthDate: birthDate)
+        let newProfile = PlayerProfile(
+            fullName: name,
+            gender: gender,
+            course: course,
+            difficulty: Int(difficulty),
+            birthDate: birthDate,
+            zodiacSign: zodiacSign
+        )
+
+        modelContext.insert(newProfile)
+
+        do {
+            try modelContext.save()
+            databaseError = nil
+            appState.selectedPlayer = newProfile
+
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showsNameError = false
+                player = Player(
+                    fullName: name,
+                    gender: gender,
+                    course: course,
+                    difficulty: Int(difficulty),
+                    birthDate: birthDate,
+                    zodiacSign: zodiacSign
+                )
+            }
+        } catch {
+            modelContext.delete(newProfile)
+            databaseError = "Не удалось сохранить игрока"
         }
+    }
+
+    private func select(_ profile: PlayerProfile) {
+        appState.selectedPlayer = profile
+        fullName = profile.fullName
+        gender = profile.gender
+        course = profile.course
+        difficulty = Double(profile.difficulty)
+        birthDate = profile.birthDate
+        player = Player(
+            fullName: profile.fullName,
+            gender: profile.gender,
+            course: profile.course,
+            difficulty: profile.difficulty,
+            birthDate: profile.birthDate,
+            zodiacSign: profile.zodiacSign
+        )
+    }
+
+    private func delete(_ profile: PlayerProfile) {
+        let deletedID = profile.id
+        let remaining = profiles.filter { $0.id != deletedID }
+
+        if appState.selectedPlayer?.id == deletedID {
+            appState.selectedPlayer = remaining.first
+        }
+
+        modelContext.delete(profile)
+
+        do {
+            try modelContext.save()
+            databaseError = nil
+            playerToDelete = nil
+
+            if let next = appState.selectedPlayer {
+                select(next)
+            } else {
+                resetForm()
+            }
+        } catch {
+            databaseError = "Не удалось удалить игрока"
+            playerToDelete = nil
+        }
+    }
+
+    private func resetForm() {
+        fullName = ""
+        gender = .male
+        course = 1
+        difficulty = 5.0
+        birthDate = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
+        player = nil
+        showsNameError = false
     }
 }
 
@@ -263,4 +434,6 @@ private struct RadioButton: View {
 
 #Preview {
     RegistrationView()
+        .environment(AppState())
+        .modelContainer(for: [PlayerProfile.self, GameRecord.self], inMemory: true)
 }
