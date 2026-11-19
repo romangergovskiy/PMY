@@ -21,6 +21,20 @@
                ReferencedContainer = "container:Bugs.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "6590D1873039B845BD71D15D"
+               BuildableName = "BugsWidget.appex"
+               BlueprintName = "BugsWidget"
+               ReferencedContainer = "container:Bugs.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

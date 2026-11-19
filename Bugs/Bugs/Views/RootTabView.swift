@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
 
 enum AppTab: Int, CaseIterable, Hashable {
     case game
     case registration
+    case records
     case rules
     case authors
     case settings
@@ -13,6 +15,8 @@ enum AppTab: Int, CaseIterable, Hashable {
             return "Игра"
         case .registration:
             return "Игрок"
+        case .records:
+            return "Рекорды"
         case .rules:
             return "Правила"
         case .authors:
@@ -28,6 +32,8 @@ enum AppTab: Int, CaseIterable, Hashable {
             return "gamecontroller.fill"
         case .registration:
             return "person.crop.circle.fill"
+        case .records:
+            return "trophy.fill"
         case .rules:
             return "book.fill"
         case .authors:
@@ -78,6 +84,8 @@ struct RootTabView: View {
             }
         case .registration:
             RegistrationView()
+        case .records:
+            RecordsView()
         case .rules:
             RulesView()
         case .authors:
@@ -102,10 +110,11 @@ private struct AppTabBar: View {
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: tab.systemImage)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 15, weight: .semibold))
                         Text(tab.title)
-                            .font(.caption2.weight(.medium))
+                            .font(.system(size: 9, weight: .medium))
                             .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
                     .foregroundStyle(selection == tab ? Palette.accent : Palette.ink.opacity(0.7))
                     .frame(maxWidth: .infinity)
@@ -132,4 +141,8 @@ private struct AppTabBar: View {
 #Preview {
     RootTabView()
         .environment(GameSettings())
+        .environment(AppState())
+        .environment(GoldRateStore())
+        .environment(GameViewModel())
+        .modelContainer(for: [PlayerProfile.self, GameRecord.self], inMemory: true)
 }

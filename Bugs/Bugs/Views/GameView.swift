@@ -1,12 +1,17 @@
 import Combine
 import SwiftUI
+import SwiftData
 
 struct GameView: View {
 
     // MARK: - Properties
 
     @Environment(GameSettings.self) private var settings
-    @State private var session = GameSession()
+    @Environment(AppState.self) private var appState
+    @Environment(GoldRateStore.self) private var goldRate
+    @Environment(GameViewModel.self) private var viewModel
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \PlayerProfile.fullName) private var profiles: [PlayerProfile]
 
     let onNavigate: (AppTab) -> Void
 
@@ -21,7 +26,7 @@ struct GameView: View {
     var body: some View {
         NavigationStack {
             Group {
-                switch session.phase {
+                switch viewModel.session.phase {
                 case .menu:
                     menu
                 case .playing:
@@ -34,7 +39,13 @@ struct GameView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .onReceive(timer) { date in
-            session.update(at: date)
+            viewModel.tick(at: date, player: appState.selectedPlayer, modelContext: modelContext)
+        }
+        .onAppear {
+            appState.restoreSelection(from: profiles)
+        }
+        .task {
+            await goldRate.refresh()
         }
     }
 
@@ -49,6 +60,69 @@ struct GameView: View {
                     subtitle: "Поймай их всех"
                 )
 
+                FormCard(title: "Текущий игрок") {
+                    if let selectedPlayer = appState.selectedPlayer {
+                        Menu {
+                            ForEach(profiles) { profile in
+                                Button {
+                                    appState.selectedPlayer = profile
+                                } label: {
+                                    if selectedPlayer.id == profile.id {
+                                        Label(profile.fullName, systemImage: "checkmark")
+                                    } else {
+                                        Text(profile.fullName)
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "person.crop.circle.fill")
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(selectedPlayer.fullName)
+                                        .font(.headline)
+                                    Text("Сложность: \(selectedPlayer.difficulty)")
+                                        .font(.caption)
+                                        .foregroundStyle(Palette.muted)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.caption.bold())
+                            }
+                            .foregroundStyle(Palette.ink)
+                        }
+                    } else {
+                        Button {
+                            onNavigate(.registration)
+                        } label: {
+                            Label("Зарегистрировать игрока", systemImage: "person.badge.plus")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+
+                FormCard(title: "Курс золота ЦБ") {
+                    HStack {
+                        Image(systemName: "circle.fill")
+                            .foregroundStyle(Palette.gold)
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let quote = goldRate.quote {
+                                Text("\(quote.formattedValue) ₽/г")
+                                    .font(.headline)
+                                Text("учётная цена на \(quote.formattedDate)")
+                                    .font(.caption)
+                                    .foregroundStyle(Palette.muted)
+                            } else if goldRate.isLoading {
+                                Text("Загрузка курса…")
+                                    .foregroundStyle(Palette.muted)
+                            } else {
+                                Text(goldRate.errorMessage ?? "Курс недоступен")
+                                    .foregroundStyle(Palette.muted)
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+
                 FormCard(title: "Игровой раунд") {
                     VStack(spacing: 18) {
                         Image(BugType.common.assetName)
@@ -57,13 +131,13 @@ struct GameView: View {
                             .frame(width: 104, height: 104)
                             .shadow(color: Palette.accent.opacity(0.22), radius: 8, y: 5)
 
-                        Text("Нажимай на насекомых, набирай очки и старайся не промахиваться.")
+                        Text("Нажимай на насекомых, набирай очки и старайся не промахиваться. Каждые 15 с появляется бонус наклона, каждые 20 с — золотой таракан.")
                             .font(.body)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(Palette.muted)
 
                         Button {
-                            session.start(with: settings)
+                            startRound()
                         } label: {
                             Label("Начать игру", systemImage: "play.fill")
                                 .font(.headline)
@@ -72,6 +146,7 @@ struct GameView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .buttonBorderShape(.roundedRectangle(radius: 14))
+                        .disabled(appState.selectedPlayer == nil)
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -80,6 +155,12 @@ struct GameView: View {
                     VStack(spacing: 10) {
                         MenuButton(title: "Настройки", systemImage: "slider.horizontal.3") {
                             onNavigate(.settings)
+                        }
+                        MenuButton(title: "Игроки", systemImage: "person.crop.circle.fill") {
+                            onNavigate(.registration)
+                        }
+                        MenuButton(title: "Рекорды", systemImage: "trophy.fill") {
+                            onNavigate(.records)
                         }
                         MenuButton(title: "Авторы", systemImage: "person.2.fill") {
                             onNavigate(.authors)
@@ -103,26 +184,35 @@ struct GameView: View {
             HStack(spacing: 10) {
                 HUDItem(
                     title: "Время",
-                    value: "\(Int(ceil(session.timeRemaining)))",
+                    value: "\(Int(ceil(viewModel.session.timeRemaining)))",
                     systemImage: "timer"
                 )
                 HUDItem(
                     title: "Очки",
-                    value: "\(session.score)",
+                    value: "\(viewModel.session.score)",
                     systemImage: "star.fill"
                 )
                 HUDItem(
                     title: "Промахи",
-                    value: "\(session.misses)",
+                    value: "\(viewModel.session.misses)",
                     systemImage: "xmark.circle.fill"
                 )
             }
 
             gameField
 
-            Text("Нажимай на жуков. Промах: −3 очка")
-                .font(.footnote)
-                .foregroundStyle(Palette.muted)
+            if viewModel.session.tiltUnlocked {
+                Label(
+                    "Крик и наклон \(Int(ceil(viewModel.session.tiltRemaining))) с",
+                    systemImage: "gyroscope"
+                )
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Palette.accent)
+            } else {
+                Text("Нажимай на жуков. Промах: −3 очка. Бонус раз в 15 с включает наклон на 5 с.")
+                    .font(.footnote)
+                    .foregroundStyle(Palette.muted)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -146,12 +236,21 @@ struct GameView: View {
                         )
                     )
 
-                ForEach(session.bugs) { bug in
+                ForEach(viewModel.session.bugs) { bug in
                     BugSprite(bug: bug)
                         .frame(width: bug.size * unit, height: bug.size * unit)
                         .position(
                             x: bug.position.x * size.width,
                             y: bug.position.y * size.height
+                        )
+                }
+
+                if let bonus = viewModel.session.tiltBonus {
+                    TiltBonusSprite()
+                        .frame(width: bonus.size * unit, height: bonus.size * unit)
+                        .position(
+                            x: bonus.position.x * size.width,
+                            y: bonus.position.y * size.height
                         )
                 }
             }
@@ -160,7 +259,7 @@ struct GameView: View {
                 SpatialTapGesture()
                     .onEnded { value in
                         guard size.width > 0, size.height > 0 else { return }
-                        session.handleTap(
+                        viewModel.handleTap(
                             at: CGPoint(
                                 x: value.location.x / size.width,
                                 y: value.location.y / size.height
@@ -188,7 +287,7 @@ struct GameView: View {
 
                 FormCard(title: "Итог") {
                     VStack(spacing: 18) {
-                        Text("\(session.score)")
+                        Text("\(viewModel.session.score)")
                             .font(.system(size: 64, weight: .bold, design: .rounded))
                             .foregroundStyle(Palette.accent)
 
@@ -197,13 +296,13 @@ struct GameView: View {
                             .foregroundStyle(Palette.muted)
 
                         HStack(spacing: 10) {
-                            ResultItem(title: "Попадания", value: "\(session.hits)")
-                            ResultItem(title: "Промахи", value: "\(session.misses)")
-                            ResultItem(title: "Точность", value: "\(session.accuracy)%")
+                            ResultItem(title: "Попадания", value: "\(viewModel.session.hits)")
+                            ResultItem(title: "Промахи", value: "\(viewModel.session.misses)")
+                            ResultItem(title: "Точность", value: "\(viewModel.session.accuracy)%")
                         }
 
                         Button {
-                            session.start(with: settings)
+                            startRound()
                         } label: {
                             Label("Играть ещё раз", systemImage: "arrow.clockwise")
                                 .font(.headline)
@@ -214,7 +313,7 @@ struct GameView: View {
                         .buttonBorderShape(.roundedRectangle(radius: 14))
 
                         Button("Вернуться в меню") {
-                            session.showMenu()
+                            viewModel.showMenu()
                         }
                         .foregroundStyle(Palette.accent)
                     }
@@ -226,9 +325,53 @@ struct GameView: View {
             .padding(.bottom, 24)
         }
     }
+
+    // MARK: - Persistence
+
+    private func startRound() {
+        guard appState.selectedPlayer != nil else {
+            onNavigate(.registration)
+            return
+        }
+
+        viewModel.startRound(settings: settings, goldPoints: goldRate.points)
+    }
 }
 
 // MARK: - Bug
+
+private struct TiltBonusSprite: View {
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.yellow.opacity(0.95),
+                            Palette.gold,
+                            Color.orange.opacity(0.85)
+                        ],
+                        center: .center,
+                        startRadius: 2,
+                        endRadius: 28
+                    )
+                )
+                .shadow(color: Palette.gold.opacity(0.7), radius: pulse ? 14 : 6)
+            Image(systemName: "gyroscope")
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.white)
+        }
+        .scaleEffect(pulse ? 1.08 : 0.94)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
+        }
+        .accessibilityLabel("Бонус наклона")
+    }
+}
 
 private struct BugSprite: View {
     let bug: Bug
@@ -244,6 +387,17 @@ private struct BugSprite: View {
                     atan2(Double(bug.velocity.dy), Double(bug.velocity.dx)) + .pi / 2
                 )
             )
+            .overlay(alignment: .bottom) {
+                if bug.type == .golden {
+                    Text("+\(bug.points)")
+                        .font(.caption2.bold().monospacedDigit())
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Palette.gold, in: Capsule())
+                        .offset(y: 10)
+                }
+            }
             .accessibilityLabel("\(bug.type.title), \(bug.points) очков")
     }
 }
@@ -317,4 +471,8 @@ private struct MenuButton: View {
 #Preview {
     GameView(onNavigate: { _ in })
         .environment(GameSettings())
+        .environment(AppState())
+        .environment(GoldRateStore())
+        .environment(GameViewModel())
+        .modelContainer(for: [PlayerProfile.self, GameRecord.self], inMemory: true)
 }
